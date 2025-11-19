@@ -51,6 +51,36 @@ app.MapGet("/persons", async (AppDbContext db) =>
     return await db.Persons.ToListAsync();
 });
 
+app.MapPut("/persons/{id}", async (int id, AppDbContext db, Person updatedPerson) =>
+{
+    var person = await db.Persons.FindAsync(id);
+
+    if (person is null)
+        return Results.NotFound($"Person with ID {id} not found.");
+
+    person.Name = updatedPerson.Name;
+    person.Age = updatedPerson.Age;
+
+    await db.SaveChangesAsync();
+
+    return Results.Ok(person);
+});
+
+
+app.MapDelete("/persons/{id}", async (int id, AppDbContext db) =>
+{
+    var person = await db.Persons.FindAsync(id);
+
+    if (person is null)
+        return Results.NotFound($"Person with ID {id} not found.");
+
+    db.Persons.Remove(person);
+    await db.SaveChangesAsync();
+
+    return Results.Ok($"Person with ID {id} deleted.");
+});
+
+
 app.MapGet("/weatherforecast", () =>
 {
     var forecast =  Enumerable.Range(1, 5).Select(index =>
@@ -72,4 +102,5 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
+
 
